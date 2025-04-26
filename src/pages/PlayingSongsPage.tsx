@@ -1,37 +1,89 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import YouTubePlayer from '@/components/YouTubePlayer';
+import GameSongSelection from '@/components/GameSongSelection';
+import { toast } from "sonner";
 
 const PlayingSongsPage = () => {
   const navigate = useNavigate();
+  const [phase, setPhase] = useState<'selection' | 'playing'>('selection');
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const isHost = true; // In a real app, this would be determined by authentication
   
-  // Mock songs data - in a real app, this would come from a backend
-  const songs = [
-    { id: '1', title: 'Euphoria', artist: 'Loreen', youtubeId: 'Pfo-8z86x80', playerName: 'Alex' },
-    { id: '2', title: 'Satellite', artist: 'Lena', youtubeId: 'esTVVjpTzIY', playerName: 'Maria' },
-    { id: '3', title: 'Fairytale', artist: 'Alexander Rybak', youtubeId: 'WXwgZL4sgaQ', playerName: 'You' },
-    { id: '4', title: 'Toy', artist: 'Netta', youtubeId: 'CziHrYYSyPc', playerName: 'Jackson' },
-    { id: '5', title: 'Arcade', artist: 'Duncan Laurence', youtubeId: 'R3D-r4ogr7s', playerName: 'Alex' },
-  ];
-  
-  const totalSongs = songs.length;
-  const progress = ((currentSongIndex + 1) / totalSongs) * 100;
-  
+  // Mock data - in a real app, this would come from backend
+  const [players] = useState(() => {
+    const playerList = [
+      { id: '1', name: 'You (Host)', isSelf: true },
+      { id: '2', name: 'Alex', isSelf: false },
+      { id: '3', name: 'Maria', isSelf: false },
+      { id: '4', name: 'Jackson', isSelf: false },
+    ];
+    // Randomize player order
+    return playerList.sort(() => Math.random() - 0.5);
+  });
+
+  const [allSongs, setAllSongs] = useState<Array<{
+    id: string;
+    title: string;
+    artist: string;
+    youtubeId: string;
+    playerName: string;
+  }>>([]);
+
+  const handleSongSelectionComplete = (songs: any[]) => {
+    const playerSongs = songs.map(song => ({
+      ...song,
+      playerName: players[currentPlayerIndex].name
+    }));
+    
+    setAllSongs([...allSongs, ...playerSongs]);
+    
+    if (currentPlayerIndex < players.length - 1) {
+      setCurrentPlayerIndex(currentPlayerIndex + 1);
+    } else {
+      // All players have selected songs, start playing phase
+      setPhase('playing');
+      // Randomize the song order for playing
+      setAllSongs(prev => [...prev].sort(() => Math.random() - 0.5));
+    }
+  };
+
+  const handleSelectionTimeout = () => {
+    toast.error("Time's up! Returning to lobby...");
+    navigate('/room-lobby');
+  };
+
   const handleNextSong = () => {
-    if (currentSongIndex < totalSongs - 1) {
+    if (currentSongIndex < allSongs.length - 1) {
       setCurrentSongIndex(currentSongIndex + 1);
     } else {
       // All songs have been played, navigate to voting
       navigate('/voting');
     }
   };
-  
-  const currentSong = songs[currentSongIndex];
-  
+
+  if (phase === 'selection') {
+    const currentPlayer = players[currentPlayerIndex];
+    return (
+      <div className="min-h-screen bg-glow-gradient bg-fixed">
+        <GameSongSelection
+          currentPlayer={currentPlayer.name}
+          isCurrentPlayer={currentPlayer.isSelf}
+          previousSongs={allSongs}
+          onComplete={handleSongSelectionComplete}
+          onTimeout={handleSelectionTimeout}
+        />
+      </div>
+    );
+  }
+
+  // Playing phase UI
+  const currentSong = allSongs[currentSongIndex];
+  const progress = ((currentSongIndex + 1) / allSongs.length) * 100;
+
   return (
     <div className="min-h-screen flex flex-col bg-glow-gradient bg-fixed">
       {/* Progress bar */}
@@ -74,7 +126,7 @@ const PlayingSongsPage = () => {
                 className="px-8 py-6 text-lg bg-gradient-to-r from-eurovision-500 to-eurovision-700 hover:from-eurovision-400 hover:to-eurovision-600 text-white"
                 onClick={handleNextSong}
               >
-                {currentSongIndex < totalSongs - 1 ? 'Next Song' : 'Go to Voting'}
+                {currentSongIndex < allSongs.length - 1 ? 'Next Song' : 'Go to Voting'}
               </Button>
             )}
             
@@ -87,7 +139,7 @@ const PlayingSongsPage = () => {
           
           {/* Progress indicator */}
           <div className="mt-6 text-center text-eurovision-400">
-            Song {currentSongIndex + 1} of {totalSongs}
+            Song {currentSongIndex + 1} of {allSongs.length}
           </div>
         </div>
       </div>

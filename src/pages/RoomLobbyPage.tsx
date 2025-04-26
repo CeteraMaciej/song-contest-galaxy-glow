@@ -13,10 +13,10 @@ const RoomLobbyPage = () => {
   const isHost = true;
   
   const players = [
-    { id: '1', name: 'You (Host)', status: 'ready', isSelf: true, isHost: true, songCount: 5 },
-    { id: '2', name: 'Alex', status: 'ready', isSelf: false, isHost: false, songCount: 5 },
-    { id: '3', name: 'Maria', status: 'selecting', isSelf: false, isHost: false, songCount: 3 },
-    { id: '4', name: 'Jackson', status: 'waiting', isSelf: false, isHost: false, songCount: 0 },
+    { id: '1', name: 'You (Host)', status: 'ready', isSelf: true, isHost: true },
+    { id: '2', name: 'Alex', status: 'ready', isSelf: false, isHost: false },
+    { id: '3', name: 'Maria', status: 'ready', isSelf: false, isHost: false },
+    { id: '4', name: 'Jackson', status: 'ready', isSelf: false, isHost: false },
   ];
   
   const copyRoomCode = () => {
@@ -86,17 +86,13 @@ const RoomLobbyPage = () => {
                   <div className={`w-3 h-3 rounded-full ${
                     player.status === 'ready' 
                       ? 'bg-green-500' 
-                      : player.status === 'selecting' 
-                      ? 'bg-yellow-500' 
                       : 'bg-red-500'
                   }`}></div>
                   <div>
                     <div className="font-medium text-eurovision-200">{player.name}</div>
                     <div className="text-xs text-eurovision-400">
                       {player.status === 'ready' 
-                        ? 'Ready to play' 
-                        : player.status === 'selecting' 
-                        ? `Selecting songs (${player.songCount}/5)` 
+                        ? 'Ready to play'
                         : 'Not ready'
                       }
                     </div>
@@ -131,8 +127,9 @@ const RoomLobbyPage = () => {
         <div className="mt-8 bg-eurovision-900/60 backdrop-blur-sm rounded-lg border border-eurovision-800 p-4">
           <h3 className="font-medium text-eurovision-300 mb-2">How to Play</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-eurovision-400">
-            <li>Each player selects 5 songs before joining the room</li>
-            <li>Songs will be played one by one in random order</li>
+            <li>Once the game starts, players will take turns selecting their songs</li>
+            <li>Each player has 5 minutes to select 5 unique songs</li>
+            <li>Songs will be played in random order</li>
             <li>After listening to all songs, you'll vote for your favorites</li>
             <li>Points are awarded Eurovision-style (1-8, 10, and 12 points)</li>
             <li>The song with the most points wins!</li>
